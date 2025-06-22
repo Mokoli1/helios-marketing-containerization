@@ -1,105 +1,29 @@
-# Git files
-.git
+# Dependencies (these get installed fresh in container)
+node_modules/
+__pycache__/
+*.pyc
+
+# Git and development files
+.git/
 .gitignore
-.gitattributes
 .github/
+.vscode/
 
 # Documentation
 README.md
-CHANGELOG.md
-CONTRIBUTING.md
-marketing-site-modernization-prd.md
+docs/
 
-# Development files
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# Logs
-logs/
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Runtime data
-pids/
-*.pid
-*.seed
-*.pid.lock
-
-# Coverage directory used by tools like istanbul
-coverage/
-.nyc_output/
-
-# node_modules (for security and size optimization)
-node_modules/
-npm-debug.log
-
-# OS generated files
-.DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-
-# Environment files (security)
+# Environment and secrets
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+*.key
+*.pem
 
-# Build output
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts (if not needed)
 dist/
 build/
-.tmp/
-
-# Test output
-test-results/
-coverage/
-
-# Docker files (avoid recursive copying)
-Dockerfile*
-docker-compose*.yml
-.dockerignore
-
-# CI/CD files
-.github/
-.travis.yml
-.circleci/
-jenkins/
-.gitlab-ci.yml
-
-# Monitoring and scripts
-monitoring/
-scripts/
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Temporary files
-tmp/
-temp/
-.cache/
-
-# IDE files
-*.sublime-project
-*.sublime-workspace
-
-# Archives
-*.zip
-*.tar.gz
-*.tgz
-*.tar.bz2
-
-# Security scan results
-.trivy/
-.snyk
-security-reports/ 
+*.log
