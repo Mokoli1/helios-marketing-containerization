@@ -180,8 +180,8 @@ jobs:
         run: |
           echo "📋 Validating Docker Compose configuration..."
           
-          # Check Docker Compose syntax
-          docker-compose config
+          # Check Docker Compose syntax (using new docker compose command)
+          docker compose config
           echo "✅ Docker Compose syntax valid"
           
           # Check for essential services
