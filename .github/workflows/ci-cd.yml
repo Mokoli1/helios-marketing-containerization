@@ -18,6 +18,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       - name: Validate HTML structure
         run: |
           echo "Checking HTML structure..."
@@ -75,6 +80,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -87,6 +97,9 @@ jobs:
         run: |
           echo "Building Docker image..."
           docker build -t $IMAGE_NAME:test .
+          
+          # Verify image was created
+          docker images | grep $IMAGE_NAME
 
       - name: Test Docker image
         run: |
@@ -94,8 +107,16 @@ jobs:
           # Start container in background
           docker run -d --name test-container -p 8080:8080 $IMAGE_NAME:test
           
-          # Wait for container to start
-          sleep 10
+          # Give container more time to start
+          echo "Waiting for container to initialize..."
+          sleep 15
+          
+          # Check container status
+          docker ps -a
+          
+          # Show container logs for debugging
+          echo "Container logs:"
+          docker logs test-container
           
           # Test if container is running
           if docker ps | grep -q test-container; then
@@ -106,26 +127,33 @@ jobs:
             exit 1
           fi
           
-          # Test health endpoint
+          # Test health endpoint with better error handling
+          echo "Testing health endpoint..."
           for i in {1..30}; do
-            if curl -f http://localhost:8080/health 2>/dev/null; then
+            if curl -f -s http://localhost:8080/health; then
               echo "✅ Health check passed"
               break
             elif [ $i -eq 30 ]; then
               echo "❌ Health check failed after 30 attempts"
+              echo "Final container logs:"
               docker logs test-container
+              echo "Network status:"
+              curl -v http://localhost:8080/health || true
               exit 1
             else
               echo "Waiting for health check... ($i/30)"
-              sleep 2
+              sleep 3
             fi
           done
           
           # Test main page
-          if curl -f http://localhost:8080/ | grep -q "Helios"; then
+          echo "Testing main page..."
+          if curl -f -s http://localhost:8080/ | grep -q "Helios"; then
             echo "✅ Main page accessible and contains expected content"
           else
             echo "❌ Main page test failed"
+            echo "Page content:"
+            curl -s http://localhost:8080/ | head -20 || true
             exit 1
           fi
           
