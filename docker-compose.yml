@@ -1,0 +1,123 @@
+# Docker Compose version is no longer required
+
+# Docker Compose for Helios Marketing Site
+# Demonstrates container orchestration, networking, and monitoring setup
+
+services:
+  # Main web application
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+      args:
+        BUILD_DATE: ${BUILD_DATE:-$(date -u +'%Y-%m-%dT%H:%M:%SZ')}
+        VCS_REF: ${VCS_REF:-$(git rev-parse --short HEAD)}
+    container_name: helios-marketing-web
+    ports:
+      - "8080:8080"
+    environment:
+      - NGINX_WORKER_PROCESSES=auto
+      - NGINX_WORKER_CONNECTIONS=1024
+      - TZ=UTC
+    volumes:
+      # Mount logs for external monitoring
+      - nginx-logs:/var/log/nginx
+      # Mount custom configuration for development
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/default.conf:/etc/nginx/conf.d/default.conf:ro
+    networks:
+      - helios-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "/usr/local/bin/healthcheck.sh", "quick"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.helios-web.rule=Host(`localhost`)"
+      - "traefik.http.services.helios-web.loadbalancer.server.port=8080"
+      - "com.helios.service=marketing-website"
+      - "com.helios.environment=development"
+      - "com.helios.version=1.0.0"
+
+  # Log aggregator (for demonstrating observability)
+  fluentd:
+    image: fluent/fluentd:v1.16-debian-1
+    container_name: helios-fluentd
+    volumes:
+      - ./monitoring/fluentd.conf:/fluentd/etc/fluent.conf:ro
+      - nginx-logs:/var/log/nginx:ro
+      - fluentd-logs:/var/log/fluentd
+    ports:
+      - "24224:24224"
+      - "24224:24224/udp"
+    networks:
+      - helios-network
+    restart: unless-stopped
+    depends_on:
+      - web
+    labels:
+      - "com.helios.service=log-aggregator"
+      - "com.helios.environment=development"
+
+  # Metrics collector (Prometheus-style endpoint)
+  nginx-exporter:
+    image: nginx/nginx-prometheus-exporter:0.11.0
+    container_name: helios-nginx-exporter
+    command:
+      - '-nginx.scrape-uri=http://web:8080/metrics'
+    ports:
+      - "9113:9113"
+    networks:
+      - helios-network
+    restart: unless-stopped
+    depends_on:
+      - web
+    labels:
+      - "com.helios.service=metrics-exporter"
+      - "com.helios.environment=development"
+
+  # Development tools container
+  dev-tools:
+    image: alpine/curl:latest
+    container_name: helios-dev-tools
+    volumes:
+      - ./scripts:/scripts:ro
+      - nginx-logs:/logs:ro
+    networks:
+      - helios-network
+    restart: "no"
+    profiles:
+      - tools
+    command: tail -f /dev/null
+    labels:
+      - "com.helios.service=dev-tools"
+      - "com.helios.environment=development"
+
+# Named volumes for data persistence
+volumes:
+  nginx-logs:
+    driver: local
+    labels:
+      - "com.helios.volume=nginx-logs"
+      - "com.helios.environment=development"
+  
+  fluentd-logs:
+    driver: local
+    labels:
+      - "com.helios.volume=fluentd-logs"
+      - "com.helios.environment=development"
+
+# Custom network for service communication
+networks:
+  helios-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+    labels:
+      - "com.helios.network=main"
+      - "com.helios.environment=development" 

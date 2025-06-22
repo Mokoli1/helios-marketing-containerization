@@ -1,0 +1,70 @@
+{
+  "name": "helios-marketing-site",
+  "version": "1.0.0",
+  "description": "Helios Observability Marketing Website - DevOps Portfolio Project",
+  "main": "index.html",
+  "scripts": {
+    "start": "docker-compose up -d",
+    "stop": "docker-compose down",
+    "build": "docker build -t helios-marketing:latest .",
+    "dev": "docker-compose up --build",
+    "logs": "docker-compose logs -f web",
+    "health": "docker exec helios-marketing-web /usr/local/bin/healthcheck.sh",
+    "test": "npm run test:security && npm run test:performance",
+    "test:security": "./scripts/security-scan.sh",
+    "test:performance": "./scripts/performance-test.sh",
+    "lint": "htmlhint index.html && stylelint assets/css/*.css",
+    "validate": "html-validate index.html",
+    "clean": "docker-compose down -v && docker system prune -f",
+    "deploy:staging": "./scripts/deploy.sh staging",
+    "deploy:production": "./scripts/deploy.sh production",
+    "backup": "./scripts/backup.sh",
+    "monitor": "docker-compose logs -f",
+    "shell": "docker exec -it helios-marketing-web sh",
+    "debug": "docker-compose -f docker-compose.yml -f docker-compose.debug.yml up"
+  },
+  "keywords": [
+    "marketing",
+    "website",
+    "observability",
+    "devops",
+    "docker",
+    "nginx",
+    "containerization"
+  ],
+  "author": "DevOps Team <devops@helios-observability.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/helios-observability/marketing-site.git"
+  },
+  "devDependencies": {
+    "htmlhint": "^1.1.4",
+    "stylelint": "^15.10.1",
+    "stylelint-config-standard": "^34.0.0",
+    "html-validate": "^8.2.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not ie <= 11"
+  ],
+  "config": {
+    "port": 8080,
+    "host": "localhost"
+  },
+  "docker": {
+    "image": "helios-marketing",
+    "tag": "latest",
+    "registry": "ghcr.io/helios-observability"
+  },
+  "monitoring": {
+    "healthcheck": "/health",
+    "metrics": "/metrics",
+    "logs": "/var/log/nginx"
+  }
+} 
