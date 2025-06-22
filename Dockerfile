@@ -26,8 +26,6 @@ ARG VCS_REF
 # Add metadata labels following OCI standards
 LABEL org.opencontainers.image.title="Helios Marketing Site - DevOps Portfolio" \
       org.opencontainers.image.description="Enterprise-grade containerized marketing site demonstrating advanced DevOps practices" \
-      org.opencontainers.image.created="${BUILD_DATE:-unknown}" \
-      org.opencontainers.image.revision="${VCS_REF:-unknown}" \
       org.opencontainers.image.vendor="Mokoli1" \
       org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.url="https://github.com/Mokoli1/helios-marketing-containerization" \
